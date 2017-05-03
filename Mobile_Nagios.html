@@ -1,0 +1,342 @@
+<!----------------------
+//--Mobile Nagios v1.0--
+//----------------------
+//-----June 27 2017-----
+//-----Aaron Porter-----
+//---------------------- 
+
+//-------------------------------------------------------------
+// Parses a json file to sort the data into 9 categories
+// Then allows you to see the number of each status at a glance
+//-------------------------------------------------------------
+
+
+//----------------------------------------------------------------------------------------------
+// Improvement to be made:
+//	Could probably eliminate many variables
+//		When initially working I did not have the $.get function as
+//		non asyncrenous which might allow the variables to be read every where
+//		This could also (if it works) eliminate the 9 Assign Variable Functions entirely
+//
+//	The Data extractor functions to be abstracted
+//		The data extractor functions are keyed to each class
+//		however if you were to edit them you might be able to 
+//		pass the div class and pass it forward
+//---------------------------------------------------------------------------------------------->
+
+<!DOCTYPE html>
+<html>
+	<head>
+
+<!-- Gerneric Bootstrap Code -->
+
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Mobile Nagios</title>
+	<link rel="shortcut icon" href="../favicon.ico">
+	<!-- Bootstrap core CSS -->
+    <link href="./css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap theme -->
+    <link href="./css/bootstrap-theme.min.css" rel="stylesheet">
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <!-- Custom styles for this template -->
+    <link href="./css/bootstrap-theme.css" rel="stylesheet">
+</head>
+
+<!-- Using Google's Jquery Library -->
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
+<script>
+
+
+// Makes the $.get functions not run asyncrenous so as to allow us 
+// to use the data it returns
+$.ajaxSetup({
+    async: false
+});
+
+//-------------
+//--Variables--
+//-------------
+
+var sOKout = [];
+var sCriticalout = [];
+var sWarningout = [];
+var sUnknownout = [];
+var sPendingout = [];
+var hUpout = [];
+var hDownout = [];
+var hPendingout = [];
+var hUnreachableout = [];
+var i;
+var x;
+
+//-------------
+//--Functions--
+//-------------
+
+
+// This function takes a string that is the ID for a div
+// and allows a button to hide or show its content
+function toggle(divClass) {
+    var x = document.getElementById(divClass);
+    if (x.style.display === 'none') {
+        x.style.display = 'block';
+    } else {
+        x.style.display = 'none';
+    }
+}
+
+// Data extractors exist for 9 different variables, each would
+// print the data it is passed to its respective div class
+// They also set every div class to hide to begin with.
+
+function dataExtractor(data, divClass){
+
+	var x = document.getElementById(divClass);
+	for (i=0; i<data.length; i++){
+		$("."+divClass).append(data[i]+"<br/>");}
+	x.style.display = 'none';
+}
+
+
+
+// assignVariables these functions exist for several different variables 
+// The take data from within the $.get jquery function and put it out where
+// the rest of the program can get to it.
+
+function asignVariablesOK(data){
+	console.log(data);
+	console.log("hi");
+	for (i=0; i< data.length; i++){
+		 sOKout.push(data[i]);}
+	}
+
+function asignVariablesCritical(data){
+	for (i=0; i< data.length; i++){
+		 sCriticalout.push(data[i]);}
+	}
+
+function asignVariablesWarning(data){
+	for (i=0; i< data.length; i++){
+		 sWarningout.push(data[i]);}
+	}
+
+function asignVariablesUnknown(data){
+	for (i=0; i< data.length; i++){
+		 sUnkownout.push(data[i]);}
+	}
+
+function asignVariablesPending(data){
+	for (i=0; i< data.length; i++){
+		 sPendingout.push(data[i]);}
+	}
+
+function asignVariablehUp(data){
+	for (i=0; i< data.length; i++){
+		 hUpout.push(data[i]);}
+	}
+
+function asignVariablehDown(data){
+	for (i=0; i< data.length; i++){
+		 hDownout.push(data[i]);}
+	}
+
+function asignVariablehPending(data){
+	for (i=0; i< data.length; i++){
+		 hPendingout.push(data[i]);}
+	}
+
+function asignVariablehUnreachable(data){
+	for (i=0; i< data.length; i++){
+		 hUnreachableout.push(data[i]);}
+	}
+
+
+//----------------------
+//--Compiling The Data--
+//----------------------
+
+
+//This function makes sure everything is complete before creating the page
+
+$(document).ready(function(){
+	console.log("1");
+	// Uses my previously crafted php code to create a json file
+	// and parse through it for all the services and their conditions
+        
+	$.getJSON("test.php?type=service", function(result){
+	console.log("2");
+
+	    // These are some arrays specified with the jquery function since its
+	    // in its own little program.
+
+	    var sOK = [];
+	    var sCritical = [];
+	    var sWarning = [];
+	    var sUnknown = [];
+	    var sPending = [];
+	    
+	    // For each result (which should be a list) from the json file,
+	    // Then for each within the resulting list it complies a string
+	    // with all the data from the first entry and passes it into the 
+	    // corresponding array based on the information within the results.
+
+            $.each(result, function(i, field){
+
+                $.each(field, function(i2,field2) {
+
+    		    if ((field2.search(/OK/) > -1) && (field2.search(/OK/) <  15)) {
+			sOK.push(i + " : " + i2 + " : " + field2);
+			}
+
+		    if ((field2.search(/CRITICAL/) > -1) && (field2.search(/CRITICAL/) < 15)){
+			sCritical.push(i + " : " + i2 + " : " + field2);
+			}
+
+		    if ((field2.search(/WARNING/) > -1) && (field2.search(/WARNING/) < 15)){ 
+			sWarning.push(i + " : " + i2 + " : " + field2);
+			}
+
+		    if ((field2.search(/UNKNOWN/) > -1) && (field2.search(/UNKNOWN/) < 15)){ 
+			sUnknown.push(i + " : " + i2 + " : " + field2);
+			}
+
+		    if ((field2.search(/PENDING/) > -1) && (field2.search(/PENDING/) < 15)){ 
+			sPending.push(i + " : " + i2 + " : " + field2);
+			}
+                });
+
+
+            });
+	
+	// Outside of the for each loop but inside the jquery function
+	// we have to send out the data to the main code.
+	console.log("3");
+	asignVariablesOK(sOK)
+	asignVariablesCritical(sCritical)
+	asignVariablesWarning(sWarning)
+	asignVariablesUnknown(sUnknown)
+	asignVariablesPending(sPending)
+
+        });
+
+	console.log("4");
+	// Then we print all the service data to their respective div classes
+	dataExtractor(sOKout, "sOK")
+	dataExtractor(sCriticalout, "sCritical")
+	dataExtractor(sWarningout, "sWarning")
+	dataExtractor(sUnknownout, "sUnknown")
+	dataExtractor(sPendingout, "sPending")
+
+	// we add the different buttons here because each button has the count of the list and that
+	// cannot be computed until the data is compiled
+	console.log("5");
+	$(".buttons").append('<div class="row"><h4>ILS Services</h4></div>');
+	$(".buttons").append('<div class="row">');
+	$(".buttons").append('<div class="col-xs-5 col-md-5"><button type="button" class="btn btn-success" id="ils-service-ok" onclick="'+"toggle('sOK')"+'"> Service OK ' + (sOKout.length).toString() + "</button></div>");
+	$(".buttons").append('<div class="col-xs-5 col-md-5"><button type="button" class="btn btn-danger" id="ils-service-critical" onclick="'+"toggle('sCritical')"+'"> Service Critical ' + (sCriticalout.length).toString() + '</button></div>');
+	$(".buttons").append('</div><div class="row">');
+	$(".buttons").append('<div class="col-xs-5 col-md-5"><button type="button" class="btn btn-warning" id="ils-service-warning" onclick="'+"toggle('sWarning')"+'"> Service Warning ' + (sWarningout.length).toString() + "</button></div>");
+	$(".buttons").append('<div class="col-xs-5 col-md-5"><button type="button" class="btn btn-primary" id="ils-service-unknown" onclick="'+"toggle('sUnknown')"+'"> Service Unknown ' + (sUnknownout.length).toString() + '</button></div>');
+	$(".buttons").append('</div><div class="row">');
+	$(".buttons").append('<div class="col-xs-5 col-md-5"><button type="button" class="btn btn-info" id="ils-service-pending" onclick="'+"toggle('sPending')"+'"> Service Pending ' + (sPendingout.length).toString() + '</button></div>');
+	$(".buttons").append('</div><div class="row">');
+	
+
+	// Uses my previously crafted php code to create a json file
+	// and parse through it for all the services and their conditions
+        $.getJSON("test.php?type=host", function(result){
+	console.log("6");
+	// These are some arrays specified with the jquery function since its
+	// in its own little program.
+
+	var hUp = [];
+	var hDown = [];
+	var hUnreachable = [];
+	var hPending = [];
+
+	    // For each result (which should be a list) from the json file,
+	    // Then for each within the resulting list it complies a string
+	    // with all the data from the first entry and passes it into the 
+	    // corresponding array based on the information within the results.
+
+            $.each(result, function(i, field){
+                $.each(field, function(i2,field2) {
+    		    if ((field2.search(/PING OK/) > -1) && (field2.search(/PING OK/) <  15)) {
+		    	hUp.push(i + " : " + field2);
+			}
+
+		    if ((field2.search(/PING CRITICAL/) > -1) && (field2.search(/PING CRITICAL/) < 15)){ 
+			hDown.push(i + " : " + field2);
+			}
+
+		    if (field2.search(/Host Unreachable/) > -1) { 
+			hUnreachable.push(i + " : " + field2);			
+			}
+
+		    if ((field2.search(/PENDING/) > -1) && (field2.search(/PENDING/) < 15)){ 
+			hPending.push(i + " : " + field2);
+			}
+                });
+           });
+
+	// Outside of the for each loop but inside the jquery function
+	// we have to send out the data to the main code.
+	console.log("7");
+	asignVariablehUp(hUp)
+	asignVariablehDown(hDown)
+	asignVariablehUnreachable(hUnreachable)
+	asignVariablehPending(hPending)
+
+        });
+
+	// Then we print all the service data to their respective div classes
+	console.log("8");
+	dataExtractor(hUpout, "hUp")
+	dataExtractor(hDownout, "hDown")
+	dataExtractor(hUnreachableout, "hUnreachable")
+	dataExtractor(hPendingout, "hPending")
+
+
+
+	// we add the different buttons here because each button has the count of the list and that
+	// cannot be computed until the data is compiled
+	console.log("9");
+	$(".buttons").append('<h4>ILS Hosts</h4></div>');
+	$(".buttons").append('<div class="row">');
+	$(".buttons").append('<div class="col-xs-5 col-md-5"><button type="button" class="btn btn-success" id="ils-host-up" onclick="'+"toggle('hUp')"+'"> Host Up ' + hUpout.length.toString() + "</button></div>");
+	$(".buttons").append('<div class="col-xs-5 col-md-5"><button type="button" class="btn btn-danger" id="ils-host-down" onclick="'+"toggle('hDown')"+'"> Host Down ' + (hDownout.length).toString() + "</button></div>");
+	$(".buttons").append('</div><div class="row">');
+	$(".buttons").append('<div class="col-xs-5 col-md-5"><button type="button" class="btn btn-warning" id="ils-host-unreachable" onclick="'+"toggle('hUnreachable')"+'"> Host Unreachable ' + (hUnreachableout.length).toString() + '</button></div></div><div class="row=">');
+	$(".buttons").append('<div class="col-xs-5 col-md-5"><button type="button" class="btn btn-info" id="ils-host-pending" onclick="'+"toggle('hPending')"+'"> Host Pending ' + (hPendingout.length).toString() + "</button></div></div>");
+	$(".buttons").append('</div>');
+});
+</script>
+
+
+<body>
+    <div class="container theme-showcase" role="main">
+<div class="buttons"> </div>
+</br></br></br>
+<div class="row">
+<div class="sOK" id="sOK"><h3>Service Ok</h3></div>
+<div class="sCritical" id="sCritical"><h3>Service Critical</h3></div>
+<div class="sWarning" id="sWarning"><h3>Service Warning</h3></div>
+<div class="sUnknown" id="sUnknown"><h3>Service Unknown</h3></div>
+<div class="sPending" id="sPending"><h3>Service Pending</h3></div>
+<div class="hUp" id="hUp"><h3>Host Up</h3></div>
+<div class="hDown" id="hDown"><h3>Host Down</h3></div>
+<div class="hUnreachable" id="hUnreachable"><h3>Host Unreachable</h3></div>
+<div class="hPending" id="hPending"><h3>Host Pending</h3></div></div>
+
+
+    </div> <!-- /container -->
+    
+    <!-- Bootstrap core JavaScript  ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    
+    <script>window.jQuery || document.write('<script src="../jquery.min.js"><\/script>')</script>
+    <script src="./js/bootstrap.min.js"></script>
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+</body>
+</html>
